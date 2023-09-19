@@ -1,0 +1,5 @@
+#!/bin/bash
+ENIS=$(aws ec2 describe-network-interfaces --region eu-central-1 --filters "Name=status,Values=available" --query "NetworkInterfaces[*].NetworkInterfaceId" --output text)
+for eni in $ENIS; do
+  aws ec2 delete-network-interface --region eu-central-1 --network-interface-id $eni
+done

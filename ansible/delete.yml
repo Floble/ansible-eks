@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  vars:
+    - lifecycle: "destroy"
+    - vpc: ""
+    - subnets: ""
+    - scgs: ""
+  roles:
+    - eks
+
+- hosts: localhost
+  vars:
+    - lifecycle: "destroy"
+    - vpc: ""
+  roles:
+    - scg
+
+- hosts: localhost
+  vars:
+    - lifecycle: "destroy"
+  roles:
+    - vpc

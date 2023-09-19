@@ -1,0 +1,61 @@
+---
+- name: Setup the eks cluster for the customer demo
+  terraform:
+    project_path: "../modules/eks/"
+    state: present
+    force_init: true
+    variables:
+      vpc: "{{ vpc }}"
+      subnets: "{{ subnets }}"
+      scgs: "{{ scgs }}"
+  register: outputs
+  when: lifecycle == "create"
+
+- name: kubeconfig setup
+  shell: |
+    cd ../modules/eks/
+    aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name)
+  when: lifecycle == "create"
+
+- name: Delete all k8s resources
+  shell: "kubectl delete all --all --all-namespaces --force"
+  when: lifecycle == "destroy"
+
+- name: Remove k8s config map
+  shell: |
+    cd ../modules/eks/
+    terraform state rm module.eks.kubernetes_config_map.aws_auth
+  when: lifecycle == "destroy"
+
+- name: Pause for 3 minutes
+  pause:
+    minutes: 3
+  when: lifecycle == "destroy"
+
+- name: Copy the bash script
+  template:
+    src: delete_enis.sh.j2
+    dest: delete_enis.sh
+    mode: 0700
+  when: lifecycle == "destroy"
+
+- name: Delete all unused enis
+  shell: "./delete_enis.sh"
+  when: lifecycle == "destroy"
+
+- name: Delete the bash script
+  file:
+    path: delete_enis.sh
+    state: absent
+  when: lifecycle == "destroy"
+
+- name: Destroy the eks cluster of the customer demo
+  terraform:
+    project_path: "../modules/eks/"
+    state: absent
+    force_init: false
+    variables:
+      vpc: "{{ vpc }}"
+      subnets: "{{ subnets }}"
+      scgs: "{{ scgs }}"
+  when: lifecycle == "destroy"

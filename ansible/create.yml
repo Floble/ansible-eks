@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  vars:
+    - lifecycle: "create"
+  roles:
+    - vpc
+
+- hosts: localhost
+  vars:
+    - lifecycle: "create"
+    - vpc: "{{ hostvars['localhost']['vpc'] }}"
+  roles:
+    - scg
+
+- hosts: localhost
+  vars:
+    - lifecycle: "create"
+    - vpc: "{{ hostvars['localhost']['vpc']}}"
+    - subnets: "{{ hostvars['localhost']['subnets'] }}"
+    - scgs: "{{ hostvars['localhost']['scgs'] }}"
+  roles:
+    - eks

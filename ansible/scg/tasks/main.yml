@@ -1,0 +1,29 @@
+---
+- name: Setup the scg for the customer demo
+  terraform:
+    project_path: "../modules/scg/"
+    state: present
+    force_init: true
+    variables:
+      vpc: "{{ vpc }}"
+  register: outputs
+  when: lifecycle == "create"
+
+- name: Set scg as fact
+  set_fact:
+    scgs: "{{ outputs.outputs.scgs.value | join(',') }}"
+  when: lifecycle == "create"
+
+- name: Debug
+  debug:
+    msg: "{{ scgs }}"
+  when: lifecycle == "create"
+
+- name: Destroy the scg of the customer demo
+  terraform:
+    project_path: "../modules/scg/"
+    state: absent
+    force_init: false
+    variables:
+      vpc: "{{ vpc }}"
+  when: lifecycle == "destroy"

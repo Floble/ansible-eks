@@ -1,0 +1,30 @@
+---
+- name: Setup the vpc for the customer demo
+  terraform:
+    project_path: "../modules/vpc/"
+    state: present
+    force_init: true
+  register: outputs
+  when: lifecycle == "create"
+
+- name: Set vpc_id as fact
+  set_fact:
+    vpc: "{{ outputs.outputs.vpc.value.vpc_id }}"
+  when: lifecycle == "create"
+
+- name: Set subnets as fact
+  set_fact:
+    subnets: "{{ outputs.outputs.vpc.value.private_subnets | join(',') }}"
+  when: lifecycle == "create"
+
+- name: Debug
+  debug:
+    msg: "{{ subnets }}"
+  when: lifecycle == "create"
+
+- name: Destroy the vpc of the customer demo
+  terraform:
+    project_path: "../modules/vpc/"
+    state: absent
+    force_init: false
+  when: lifecycle == "destroy"
